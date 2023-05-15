@@ -323,7 +323,11 @@ def flash(message: str, category: str = "message") -> None:
     # This assumed that changes made to mutable structures in the session are
     # always in sync with the session object, which is not true for session
     # implementations that use external storage for keeping their keys/values.
-    flashes = session.get("_flashes", [])
+    #
+    # copy the flashes object from the session to prevent weakref ReferenceErrors
+    # when the original object gets garbage collected
+    # (for example when using flask-mongoengine)
+    flashes = session.get("_flashes", [])[:]
     flashes.append((category, message))
     session["_flashes"] = flashes
     app = current_app._get_current_object()  # type: ignore
